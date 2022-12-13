@@ -5,6 +5,6 @@ class PdfJob < ApplicationJob
       pdf,
       '<h1 style="text-align: center">Just a test123</h1>'
     )
-    pdf.render_file("public/'#{filename}.pdf'")
+    pdf.render_file("public/#{filename}.pdf")
   end
 end

@@ -2,21 +2,31 @@ module Api
   module Exportfile
     class Pdf < Grape::API
       version "v1", using: :path
+      format :json
 
       resource :pdf do
         post :generate do
-          header["Content-Disposition"] = "attachment; filename=test.pdf"
-          content_type "application/pdf"
-          env["api.format"] = :binary
+          filename = Time.now.to_i
+          ext = "pdf"
+          loc = "public/#{filename}.pdf"
+          asset = Asset.new(name: filename, ext: ext, loc: loc)
+          asset.save
 
-          # pdf = Prawn::Document.new(page_size: "A4")
-          # PrawnHtml.append_html(
-          #   pdf,
-          #   '<h1 style="text-align: center">Just a test</h1>'
-          # )
-          # pdf.render_file("public/test.pdf")
+          puts asset
 
-          PdfJob.perform_later
+          PdfJob.perform_later(filename)
+          present asset, with: Api::Exportfile::Entities::AssetEntity
+        end
+
+        route_param :id do
+          get do
+            asset = Asset.find(params[:id])
+            header["Content-Disposition"] = "attachment; filename=test.pdf"
+            content_type "application/pdf"
+            env["api.format"] = :binary
+
+            File.binread(asset.loc)
+          end
         end
       end
     end
